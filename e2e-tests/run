@@ -11,6 +11,7 @@ fail() {
     exit 1
 }
 
+"$dir/default-cr/run" || fail "default-cr"
 "$dir/init-deploy/run" || fail "init-deploy"
 "$dir/limits/run" || fail "limits"
 "$dir/scaling/run" || fail "scaling"
