@@ -314,6 +314,9 @@ func (cr *PerconaServerMongoDB) CheckNSetDefaults(platform version.Platform, log
 					"liveness",
 				},
 			}
+			if cr.Spec.Unmanaged {
+				replset.LivenessProbe.Probe.Handler.Exec.Command = append(replset.LivenessProbe.Probe.Handler.Exec.Command, "--component", "mongod-standalone")
+			}
 			if cr.CompareVersion("1.6.0") >= 0 {
 				replset.LivenessProbe.Probe.Handler.Exec.Command[0] = "/data/db/mongodb-healthcheck"
 				if cr.CompareVersion("1.7.0") >= 0 {
@@ -468,6 +471,12 @@ func (rs *ReplsetSpec) SetDefauts(platform version.Platform, unsafe bool, log lo
 	if rs.PodSecurityContext == nil {
 		rs.PodSecurityContext = &corev1.PodSecurityContext{
 			FSGroup: fsgroup,
+		}
+	}
+
+	for _, extNode := range rs.ExternalNodes {
+		if extNode.Port == 0 {
+			extNode.Port = 27017
 		}
 	}
 

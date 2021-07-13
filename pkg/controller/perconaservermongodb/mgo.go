@@ -29,6 +29,10 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		return api.AppStateInit, nil
 	}
 
+	if cr.Spec.Unmanaged {
+		return api.AppStateReady, nil
+	}
+
 	cli, err := r.mongoClientWithRole(cr, *replset, roleClusterAdmin)
 	if err != nil {
 		if cr.Status.Replsets[replset.Name].Initialized {
@@ -158,6 +162,25 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		members = append(members, member)
 	}
 
+	memberC := len(members)
+	for i, extNode := range replset.ExternalNodes {
+		if i+memberC >= mongo.MaxMembers {
+			log.Error(errReplsetLimit, "rs", replset.Name)
+			break
+		}
+
+		member := mongo.ConfigMember{
+			ID:           i + memberC,
+			Host:         extNode.Host,
+			Votes:        extNode.Votes,
+			Priority:     extNode.Priority,
+			BuildIndexes: true,
+			Tags:         mongo.ReplsetTags{"external": "true"},
+		}
+
+		members = append(members, member)
+	}
+
 	if cnf.Members.RemoveOld(members) {
 		cnf.Members.SetVotes()
 
@@ -186,6 +209,17 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 
 	membersLive := 0
 	for _, member := range rsStatus.Members {
+		var tags mongo.ReplsetTags
+		for i := range cnf.Members {
+			if member.Id == cnf.Members[i].ID {
+				tags = cnf.Members[i].Tags
+				break
+			}
+		}
+		if _, ok := tags["external"]; ok {
+			continue
+		}
+
 		switch member.State {
 		case mongo.MemberStatePrimary, mongo.MemberStateSecondary, mongo.MemberStateArbiter:
 			membersLive++
