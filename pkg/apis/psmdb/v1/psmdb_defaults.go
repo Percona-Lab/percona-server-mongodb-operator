@@ -26,6 +26,7 @@ var (
 	defaultReplsetName                    = "rs"
 	defaultStorageEngine                  = StorageEngineWiredTiger
 	defaultMongodPort               int32 = 27017
+	defaultTLSMode                        = "preferSSL"
 	defaultWiredTigerCacheSizeRatio       = 0.5
 	defaultInMemorySizeRatio              = 0.9
 	defaultOperationProfilingMode         = OperationProfilingModeSlowOp
@@ -69,6 +70,12 @@ func (cr *PerconaServerMongoDB) CheckNSetDefaults(platform version.Platform, log
 	}
 	if cr.Spec.Mongod.Net.Port == 0 {
 		cr.Spec.Mongod.Net.Port = defaultMongodPort
+	}
+	if cr.Spec.Mongod.Net.TLS == nil {
+		cr.Spec.Mongod.Net.TLS = &MongodSpecNetTLS{}
+	}
+	if len(cr.Spec.Mongod.Net.TLS.Mode) == 0 {
+		cr.Spec.Mongod.Net.TLS.Mode = defaultTLSMode
 	}
 	if cr.Spec.Mongod.Storage == nil {
 		cr.Spec.Mongod.Storage = &MongodSpecStorage{}
