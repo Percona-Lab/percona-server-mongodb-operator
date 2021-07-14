@@ -146,7 +146,7 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 		)
 	} else {
 		args = append(args,
-			"--sslMode=preferSSL",
+			"--sslMode="+mSpec.Net.TLS.Mode,
 			"--clusterAuthMode=x509",
 		)
 	}

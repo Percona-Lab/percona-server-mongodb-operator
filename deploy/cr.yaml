@@ -280,6 +280,8 @@ spec:
     net:
       port: 27017
       hostPort: 0
+#     tls:
+#       mode: preferSSL
     security:
       redactClientLogData: false
       enableEncryption: true

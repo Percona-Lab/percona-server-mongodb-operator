@@ -318,8 +318,13 @@ type MongodSpec struct {
 }
 
 type MongodSpecNet struct {
-	Port     int32 `json:"port,omitempty"`
-	HostPort int32 `json:"hostPort,omitempty"`
+	Port     int32             `json:"port,omitempty"`
+	HostPort int32             `json:"hostPort,omitempty"`
+	TLS      *MongodSpecNetTLS `json:"tls,omitempty"`
+}
+
+type MongodSpecNetTLS struct {
+	Mode string `json:"mode,omitempty"`
 }
 
 type MongodSpecReplication struct {
